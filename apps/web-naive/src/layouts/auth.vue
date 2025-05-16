@@ -8,6 +8,7 @@ import { $t } from '#/locales';
 
 const appName = computed(() => preferences.app.name);
 const logo = computed(() => preferences.logo.source);
+console.warn(preferences, '----------')
 </script>
 
 <template>
