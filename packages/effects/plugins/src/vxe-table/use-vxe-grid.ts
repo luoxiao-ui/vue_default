@@ -18,6 +18,7 @@ export function useVbenVxeGrid(options: VxeGridProps) {
   const Grid = defineComponent(
     (props: VxeGridProps, { attrs, slots }) => {
       onBeforeUnmount(() => {
+          console.log('出发')
         api.unmount();
       });
       api.setState({ ...props, ...attrs });

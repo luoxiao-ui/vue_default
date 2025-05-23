@@ -94,8 +94,8 @@ const gridOptions: VxeTableGridOptions<RowType> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        message.success(`Query params: ${JSON.stringify(formValues)}`);
+      query: async ({ page, form }, formValues) => {
+        console.log(formValues)
         return await getExampleTableApi({
           page: page.currentPage,
           pageSize: page.pageSize,

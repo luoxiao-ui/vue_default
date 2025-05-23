@@ -17,6 +17,7 @@ import {
   NNotificationProvider,
   zhCN,
 } from 'naive-ui';
+import './app.scss'
 
 defineOptions({ name: 'App' });
 
