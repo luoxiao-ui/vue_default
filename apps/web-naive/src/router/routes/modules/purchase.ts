@@ -20,12 +20,32 @@ const routes: RouteRecordRaw[] = [
                 },
             },
             {
+                name: 'purchaseOrderDetail',
+                path: '/purchase/orderDetail',
+                component: ()=> import('#/views/purchase/order/detail/index.vue'),
+                meta: {
+                    title: '采购订单详情',
+                    keepAlive: true,
+                    hideInMenu: true
+                },
+            },
+            {
                 name: 'purchaseReceive',
                 path: '/purchase/receive',
                 component: ()=> import('#/views/purchase/receive/index.vue'),
                 meta: {
                     title: '采购收货单',
                     keepAlive: true
+                },
+            },
+            {
+                name: 'purchaseReceiveDetail',
+                path: '/purchase/receiveDetail',
+                component: ()=> import('#/views/purchase/receive/detail/index.vue'),
+                meta: {
+                    title: '采购收货单详情',
+                    keepAlive: true,
+                    hideInMenu: true,
                 },
             },
             {
@@ -38,12 +58,32 @@ const routes: RouteRecordRaw[] = [
                 },
             },
             {
+                name: 'purchaseInDetail',
+                path: '/purchase/inDetail',
+                component: ()=> import('#/views/purchase/in/detail/index.vue'),
+                meta: {
+                    title: '采购入库单详情',
+                    keepAlive: true,
+                    hideInMenu: true,
+                },
+            },
+            {
                 name: 'purchaseReturn',
                 path: '/purchase/return',
                 component: ()=> import('#/views/purchase/return/index.vue'),
                 meta: {
                     title: '采购退货单',
                     keepAlive: true
+                },
+            },
+            {
+                name: 'purchaseReturnDetail',
+                path: '/purchase/returnDetail',
+                component: ()=> import('#/views/purchase/return/detail/index.vue'),
+                meta: {
+                    title: '采购退货单详情',
+                    keepAlive: true,
+                    hideInMenu: true,
                 },
             },
         ]

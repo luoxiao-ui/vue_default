@@ -1,48 +1,210 @@
 <script lang="ts" setup>
-import {Page} from '@vben/common-ui';
+import {Page, type VbenFormProps} from '@vben/common-ui';
 import { NButton, NFlex, NPopconfirm }  from 'naive-ui'
-import { DeleteIcon } from '@vben/icons';
-import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {useBaseDetail} from "#/views/hook/useBaseDetail";
+import { CopyIcon, SearchIcon, AddIcon, DeleteIcon, ExportIcon, DenyIcon } from '@vben/icons';
+import {type Ref, ref} from "vue";
+import {useRouter} from "vue-router";
+import {useVbenVxeGrid, type VxeTableGridOptions} from "#/adapter/vxe-table";
+import {commonFormConfig, commonGradConfig, dateRange, textColor} from "#/util/constant";
+import {getNormalTime} from "#/util";
+import {purchaseReceiveDateType, purchaseReceiveStatus} from "#/views/purchase/receive/constant";
+import {purchaseReceiveApi} from "#/views/purchase/receive/api";
 
-const { Grid, queryTable, updateItem, deleteItem } = useBaseDetail({
-  searchForm: [
+const loading = ref(false)
+const data = ref([])
+const pageConfig: Ref<{current: number,pageSize: number}> = ref({
+  current: 1,
+  pageSize: 50,
+})
+const router = useRouter()
+const formOptions: VbenFormProps = {
+  ...commonFormConfig,
+  fieldMappingTime: [['date', ['start_time', 'end_time']]],
+  schema: [
+    {
+      component: 'Select',
+      componentProps: {
+        options: dateRange
+      },
+      defaultValue: 'today',
+      fieldName: 'dateRanger',
+      label: '日期范围',
+    },
+    {
+      component: 'DatePicker',
+      fieldName: 'date',
+      defaultValue: getNormalTime('today'),
+      componentProps: {
+        type: 'daterange'
+      },
+      dependencies: {
+        triggerFields: ['dateRanger'],
+        trigger(value, form) {
+          form.setFieldValue('date', getNormalTime(value.dateRanger))
+        }
+      },
+      label: '时间范围'
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        options: purchaseReceiveStatus,
+        multiple: true,
+      },
+      fieldName: 'state',
+      label: '单据状态',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        options: purchaseReceiveDateType,
+      },
+      fieldName: 'time_type',
+      defaultValue: 'create_date',
+      label: '日期类型',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        options: []
+      },
+      fieldName: 'storehouse_id',
+      label: '收货仓库',
+    },
     {
       component: 'Input',
-      fieldName: 'keyword',
-      label: '用户名称',
+      fieldName: 'suppliers',
+      label: '供应商',
+    },
+    {
+      component: 'Input',
+      fieldName: 'drugs',
+      label: '药品资料',
+    },
+    {
+      component: 'Input',
+      fieldName: 'fid',
+      label: '单据号',
     },
   ],
+
+};
+const gridOptions: VxeTableGridOptions<any> = {
+  ...commonGradConfig,
+  loading: loading.value,
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
-    { title: '用户名', field: 'user_name', width: 140 },
-    { title: '昵称', field: 'nick_name', width: 140 },
-    { title: '角色名称', field: 'role_names', width: 140 },
-    { title: '手机号', field: 'tel', width: 160 },
-    { title: '状态', field: 'status', width: 100 },
-    { slots: { default: 'action' }, title: '操作', width: 120 },
-  ]
-})
+    { title: '序号', type: 'checkbox', width: 80 },
+    { title: '单据号', field: 'fid', width: 160 },
+    { title: '单据状态', field: 'state', width: 100 },
+    { title: '品种', field: 'drug_count', width: 100 },
+    { title: '金额', field: 'money', width: 120 },
+    { title: '入库金额', field: 'in_money', width: 120 },
+    { title: '供应商', field: 'supplier_name', width: 140 },
+    { title: '收货仓库', field: 'storehouse_name', width: 140 },
+    { title: '所属客户', field: 'client_name', width: 140 },
+    { title: '收货人', field: 'create_by', width: 120 },
+    { title: '收货日期', field: 'audit_time', width: 140 },
+    { title: '关联采购订单', field: 'purchase_order_fid', width: 140 },
+    { title: '操作', slots: { default: 'action' }, width: 120, fixed: 'right' }
+  ],
+  data: data.value,
+  pagerConfig: {
+    currentPage: pageConfig.value.current,
+    pageSize: pageConfig.value.pageSize,
+    pageSizes: [50, 100, 200]
+  },
+};
+const [Grid, gradApi] = useVbenVxeGrid({
+  formOptions,
+  gridOptions,
+  gridEvents: {
+    pageChange: (pager: any)=> {
+      gradApi.setGridOptions({
+        pagerConfig: {
+          currentPage: pager.currentPage,
+          pageSize: pager.pageSize,
+        }
+      })
+      pageConfig.value.pageSize = pager.pageSize
+      pageConfig.value.current = pager.currentPage
+    }
+  }
+});
+
+// 查询
+const queryTable = async () => {
+  console.log('--------pageConfig', pageConfig)
+}
+// 新增
+const addItem = async () => {
+  await router.push({
+    path: '/purchase/inDetail',
+    query: {
+      id: -1,
+    }
+  })
+}
+// 新增
+const updateItem = async (row: any) => {
+  await router.push({
+    path: '/purchase/inDetail',
+    query: {
+      id: row.fid,
+    }
+  })
+}
+// 删除
+const deleteItem = async (obj: any) => {
+  const result = await purchaseReceiveApi.delete({ ...obj })
+  if(result) {}
+}
 </script>
 
 <template>
   <Page auto-content-height>
     <Grid>
       <template #toolbar-actions>
-        <n-button @click="queryTable" type="info" style="min-width: 80px">
+        <n-button class="buttonWidth" @click="queryTable" type="info">
+          <template #icon>
+            <SearchIcon />
+          </template>
           查询
+        </n-button>
+        <n-button class="buttonWidth" @click="addItem" type="info" style="margin-left: 10px">
+          <template #icon>
+            <AddIcon />
+          </template>
+          新增
+        </n-button>
+        <n-button class="buttonWidth" @click="queryTable" type="info" style="margin-left: 10px">
+          <template #icon>
+            <DeleteIcon />
+          </template>
+          批量删除
+        </n-button>
+        <n-button class="buttonWidth" @click="queryTable" type="info" style="margin-left: 10px">
+          <template #icon>
+            <ExportIcon />
+          </template>
+          导出
         </n-button>
       </template>
       <template #code="{row}">
-        <span @click="updateItem({ name: row.name })" style="color: #2080f0;cursor: pointer;">{{ row.name }}</span>
+        <span @click="updateItem(row)" style="color: #2080f0;cursor: pointer;">{{ row.name }}</span>
       </template>
       <template #action>
         <n-flex justify="center">
           <n-popconfirm @positive-click="deleteItem">
             <template #trigger>
-              <DeleteIcon style="color: #2080f0;cursor: pointer;" />
+              <CopyIcon :style="{color: textColor['info'], cursor: 'pointer', fontSize: '16px'}" />
             </template>
-            确认要删除吗?
+            确认要复制吗?
+          </n-popconfirm>
+          <n-popconfirm @positive-click="deleteItem">
+            <template #trigger>
+              <DenyIcon :style="{color: textColor['info'], cursor: 'pointer', fontSize: '16px'}" />
+            </template>
+            确认要作废吗?
           </n-popconfirm>
         </n-flex>
       </template>
