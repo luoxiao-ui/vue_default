@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {Page} from '@vben/common-ui';
 import { NButton, NFlex, NPopconfirm }  from 'naive-ui'
-import { DeleteIcon } from '@vben/icons';
+import {DeleteIcon, SearchIcon, AddIcon} from '@vben/icons';
 import {useBaseInfo} from "#/views/hook/useBaseInfo";
 import {storageDirection} from "#/views/baseInfo/storageAdRson/constant";
 import {textColor} from "#/constants";
@@ -11,10 +11,6 @@ const { Modal, BaseForm, queryTable, addItem, updateItem, deleteItem, title, Gri
   searchForm: [
     {
       component: 'Input',
-      componentProps: {
-        placeholder: '查询库存调整原因',
-      },
-      defaultValue: '',
       fieldName: 'keyword',
       label: '库存调整原因',
     },
@@ -23,7 +19,6 @@ const { Modal, BaseForm, queryTable, addItem, updateItem, deleteItem, title, Gri
     {
       component: 'Input',
       rules: 'required',
-      defaultValue: '',
       fieldName: 'name',
       label: '库存调整原因',
     },
@@ -33,9 +28,17 @@ const { Modal, BaseForm, queryTable, addItem, updateItem, deleteItem, title, Gri
         options: storageDirection
       },
       rules: 'required',
-      defaultValue: '',
       fieldName: 'flag',
       label: '库存进出方向',
+    },
+    {
+      component: 'Input',
+      fieldName: 'id',
+      label: 'id值',
+      hideLabel: true,
+      componentProps: {
+        hidden: true,
+      }
     },
   ],
   columns: [
@@ -55,24 +58,30 @@ const { Modal, BaseForm, queryTable, addItem, updateItem, deleteItem, title, Gri
     </Modal>
     <Grid>
       <template #toolbar-actions>
-        <n-button @click="queryTable" type="info" style="min-width: 80px">
+        <n-button class="buttonWidth" @click="queryTable" type="info">
+          <template #icon>
+            <SearchIcon />
+          </template>
           查询
         </n-button>
-        <n-button @click="addItem" type="info" style="min-width: 80px;margin-left: 10px">
+        <n-button class="buttonWidth" @click="addItem" type="info" style="margin-left: 10px">
+          <template #icon>
+            <AddIcon />
+          </template>
           新增
         </n-button>
       </template>
       <template #name="{row}">
-        <span @click="updateItem({ name: row.name, flag: row.flag })" style="color: #2080f0;cursor: pointer;">{{ row.name }}</span>
+        <span @click="updateItem({ name: row.name, flag: row.flag, id: row.id.toString() })" :style="{color: textColor['info'],cursor: 'pointer'}">{{ row.name }}</span>
       </template>
       <template #flag="{row}">
         <span :style="{ color: textColor[row.flag ? 'success' : 'error'] }">{{ row.flag ? '入库' : '出库' }}</span>
       </template>
-      <template #action>
+      <template #action="{row}">
         <n-flex justify="center">
-          <n-popconfirm @positive-click="deleteItem">
+          <n-popconfirm @positive-click="deleteItem({id: row.id})">
             <template #trigger>
-              <DeleteIcon style="color: #2080f0;cursor: pointer;" />
+              <DeleteIcon :style="{color: textColor['info'],cursor: 'pointer'}" />
             </template>
             确认要删除吗?
           </n-popconfirm>

@@ -1,17 +1,20 @@
-import {type Ref, ref} from "vue";
+import {onMounted, type Ref, ref} from "vue";
 import {useVbenForm, type VbenFormProps} from "#/adapter/form";
 import {useVbenModal} from "@vben/common-ui";
 import {useVbenVxeGrid, type VxeTableGridOptions} from "#/adapter/vxe-table";
+import {commonFormConfig, commonGradConfig} from "#/util/constant";
+// @ts-ignore
+import type {FormSchema} from "@vben-core/form-ui/src/types";
 
 interface BaseInfoProps {
-    searchForm: any[]
-    modalForm: any[]
+    searchForm: FormSchema[]
+    modalForm: FormSchema[]
     columns: any[]
     api: {
-        query: (data: any)=> Promise<any>,
-        add: (data: any)=> Promise<any>,
-        delete: (data: any)=> Promise<any>,
-        update: (data: any)=> Promise<any>
+        query: (data: any) => Promise<any>,
+        add: (data: any) => Promise<any>,
+        delete: (data: any) => Promise<any>,
+        update: (data: any) => Promise<any>
     }
 }
 
@@ -31,85 +34,54 @@ export const useBaseInfo = (props: BaseInfoProps) => {
         columns,
         api
     } = props
-    const loading = ref(false)
-    const data = ref([])
-    const pageConfig: Ref<{current: number,pageSize: number}> = ref({
+    const pageConfig: Ref<{ current: number, pageSize: number }> = ref({
         current: 1,
         pageSize: 50,
     })
     const title = ref<string>('新增');
     const [BaseForm, formApi] = useVbenForm({
-        showDefaultActions: false,
+        ...commonFormConfig,
+        wrapperClass: 'grid-cols-1',
         schema: modalForm,
-        commonConfig: {
-            colon: true
-        },
     })
     const [Modal, modalApi] = useVbenModal({
         centered: true,
         onConfirm: async () => {
             formApi.validate().then(async (res) => {
                 if (res.valid) {
-                    formApi.getValues().then(async (res)=> {
+                    formApi.getValues().then(async (res) => {
                         let result
-                        if(title.value === '新增') {
+                        if (!res.id) {
                             result = await api.add({...res})
                         } else {
-                         result = await api.update({...res})
+                            result = await api.update({...res})
                         }
-                        console.log(result, '----result')
+                        if (result.code === 200) {
+                            await init()
+                        }
                     })
                 }
             })
         }
     });
     const formOptions: VbenFormProps = {
-        commonConfig: {
-            colon: true
-        },
-        wrapperClass: 'grid-cols-4',
+        ...commonFormConfig,
         schema: searchForm,
-        // 不显示表单按钮
-        showDefaultActions: false,
-        // 控制表单是否显示折叠按钮
-        showCollapseButton: false,
-        // 是否在字段值改变时提交表单
-        submitOnChange: false,
-        // 按下回车时是否提交表单
-        submitOnEnter: true,
-        // 紧凑模式
-        compact: true,
-        // 隐藏提交按钮
-        submitButtonOptions: {
-            show: false
-        },
-    };
+    }
     const gridOptions: VxeTableGridOptions<RowType> = {
-        loading: loading.value,
+        ...commonGradConfig,
         columns: columns,
-        data: data.value,
         pagerConfig: {
             currentPage: pageConfig.value.current,
             pageSize: pageConfig.value.pageSize,
             pageSizes: [50, 100, 200]
-        },
-        height: 'auto',
-        keepSource: true,
-        stripe: true,
-        toolbarConfig: {
-            custom: true,
-            export: true,
-            refresh: true,
-            resizable: true,
-            search: true,
-            zoom: true,
         },
     };
     const [Grid, gradApi] = useVbenVxeGrid({
         formOptions,
         gridOptions,
         gridEvents: {
-            pageChange: (pager: any)=> {
+            pageChange: (pager: any) => {
                 gradApi.setGridOptions({
                     pagerConfig: {
                         currentPage: pager.currentPage,
@@ -124,8 +96,7 @@ export const useBaseInfo = (props: BaseInfoProps) => {
 
     // 查询
     const queryTable = async () => {
-        console.log('--------pageConfig', pageConfig)
-        // const result = await api.query()
+        await init()
     }
     // 新增
     const addItem = async () => {
@@ -134,8 +105,14 @@ export const useBaseInfo = (props: BaseInfoProps) => {
     }
     // 删除
     const deleteItem = async (obj: any) => {
-        const result = await api.delete({ ...obj })
-        if(result) {}
+        try {
+            const result = await api.delete({...obj})
+            if (result.code === 200) {
+                await init()
+            }
+        } catch (e) {
+            console.log('useBaseInfo deleteItem', e)
+        }
     }
     // 更新
     const updateItem = async (obj: any) => {
@@ -143,8 +120,31 @@ export const useBaseInfo = (props: BaseInfoProps) => {
         modalApi.open()
         await formApi.setValues(obj)
     }
+    const init = async () => {
+        try {
+            gradApi.setLoading(true)
+            const postData = {
+                pageNum: pageConfig.value.current,
+                pageSize: pageConfig.value.pageSize,
+                ...await gradApi.formApi.getValues()
+            }
+            const result = await api.query(postData)
+            gradApi.setLoading(false)
+            if (result.code === 200) {
+                gradApi.setGridOptions({
+                    data: result.data
+                })
+            }
+        } catch (e) {
+            console.log('useBaseInfo init', e)
+            gradApi.setLoading(false)
+        }
+    }
+    // 初始化请求
+    onMounted(() => {
+        init().then()
+    })
     return {
-        loading,
         BaseForm,
         formApi,
         Modal,

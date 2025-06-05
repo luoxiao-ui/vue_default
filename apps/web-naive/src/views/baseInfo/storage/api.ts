@@ -20,9 +20,33 @@ async function update(data: any) {
     return requestClient.post('/my.easy.storage.update', data)
 }
 
+// queryTree
+async function queryTree() {
+    return requestClient.post('/my.easy.storagecategory.find')
+}
+
+// addTree
+async function addTree() {
+    return requestClient.post('/my.easy.storagecategory.save')
+}
+
+// deleteTree
+async function deleteTree() {
+    return requestClient.post('/my.easy.storagecategory.delete')
+}
+
+// updateTree
+async function updateTree() {
+    return requestClient.post('/my.easy.storagecategory.update')
+}
+
 export const storageApi = {
     query,
     add,
     delete: del,
-    update
+    update,
+    queryTree,
+    addTree,
+    deleteTree,
+    updateTree
 }

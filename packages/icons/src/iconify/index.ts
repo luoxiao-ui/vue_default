@@ -33,3 +33,5 @@ export const SearchIcon = createIconifyIcon('lucide:search')
 export const ExportIcon = createIconifyIcon('lucide:file-up')
 
 export const PrintIcon = createIconifyIcon('lucide:printer')
+
+export const EditIcon = createIconifyIcon('lucide:pen')

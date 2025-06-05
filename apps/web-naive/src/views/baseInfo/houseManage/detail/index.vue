@@ -1,35 +1,19 @@
 <script setup lang="ts">
 import {onMounted} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {NCard} from "naive-ui";
+import {NButton, NCard} from "naive-ui";
 import {Page} from "@vben/common-ui";
 import {useVbenForm} from "#/adapter/form";
 import {useTabs} from "@vben/hooks";
+import {houseApi} from "#/views/baseInfo/houseManage/api";
+import {commonFormConfig} from "#/util/constant";
+import {BackIcon, SaveIcon} from '@vben/icons';
 
 const route = useRoute()
 const router = useRouter()
 const tabs = useTabs()
-const [BaseForm] = useVbenForm({
-  handleReset: () => {
-    tabs.closeCurrentTab()
-    router.back()
-  },
-  handleSubmit: async (values) => {
-    console.log(values)
-    if(route.query.id === '-1') {
-      // const result = await houseApi.add({...values})
-    } else {
-      // const result = await houseApi.update({...values})
-    }
-  },
-  showCollapseButton: false,
-  resetButtonOptions: {
-    content: '返回',
-  },
-  commonConfig: {
-    colon: true,
-  },
-  layout: 'horizontal',
+const [BaseForm, formApi] = useVbenForm({
+  ...commonFormConfig,
   wrapperClass: 'grid-cols-3',
   schema: [
     {
@@ -71,17 +55,51 @@ const [BaseForm] = useVbenForm({
     },
   ]
 })
-onMounted(()=> {
-  if(route.query.id !== '-1') {
+onMounted(() => {
+  if (route.query.id !== '-1') {
     // 进行初始化请求
   }
 })
+const goBack = () => {
+  tabs.closeCurrentTab()
+  router.back()
+}
+const saveItem = async () => {
+  formApi.validate().then(validRes => {
+    if (validRes.valid) {
+      formApi.getValues().then(async (res) => {
+        let result
+        if (route.query.id === '-1') {
+          result = await houseApi.add({...res})
+        } else {
+          result = await houseApi.update({...res})
+        }
+        if (result.code === 200) {
+          goBack()
+        }
+      })
+    }
+  })
+}
 </script>
 <template>
-  <Page content-class="flex flex-col gap-4">
+  <Page auto-content-height>
+    <template #title>
+      <n-button @click="goBack" type="default" class="buttonWidth">
+        <template #icon>
+          <BackIcon />
+        </template>
+        返回
+      </n-button>
+      <n-button @click="saveItem" type="info" class="buttonWidth" style="margin-left: 10px">
+        <template #icon>
+          <SaveIcon />
+        </template>
+        保存
+      </n-button>
+    </template>
     <n-card title="仓库详情">
       <BaseForm />
     </n-card>
-    <div class="formWidth"></div>
   </Page>
 </template>

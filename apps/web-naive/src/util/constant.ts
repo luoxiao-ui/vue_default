@@ -1,4 +1,7 @@
 // 日期范围
+import type {VbenFormProps} from "@vben-core/form-ui";
+import type {VxeTableGridOptions} from "@vben/plugins/vxe-table";
+
 export const dateRange = [
     {
         label: '今天',
@@ -31,9 +34,12 @@ export const dateRange = [
 ];
 
 // 固定的参数
-export const commonFormConfig = {
+export const commonFormConfig: VbenFormProps = {
     commonConfig: {
-        colon: true
+        colon: true,
+        componentProps: {
+            clearable: true
+        }
     },
     showDefaultActions: false,
     wrapperClass: 'grid-cols-4',
@@ -45,21 +51,24 @@ export const commonFormConfig = {
     submitOnChange: false,
     // 按下回车时是否提交表单
     submitOnEnter: true,
-    // 紧凑模式
-    compact: true,
+    compact: false,
 }
-export const commonGradConfig = {
+export const commonGradConfig: VxeTableGridOptions = {
     height: 'auto',
     keepSource: true,
-    stripe: true,
+    exportConfig: {},
     toolbarConfig: {
         custom: true,
         export: true,
-        refresh: true,
+        refresh: false,
         resizable: true,
         search: true,
         zoom: true,
-    }
+    },
+    checkboxConfig: {
+        trigger: 'row',
+        range: true,
+    },
 }
 
 export const textColor: {

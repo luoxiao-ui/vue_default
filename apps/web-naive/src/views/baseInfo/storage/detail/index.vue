@@ -1,47 +1,26 @@
 <script setup lang="ts">
-import {onMounted, type Ref, ref} from "vue";
+import {onMounted, type Ref, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {NButton} from "naive-ui";
 import {Page, type VbenFormProps} from "@vben/common-ui";
 import {useTabs} from "@vben/hooks";
-import {useVbenVxeGrid, type VxeTableGridOptions} from "#/adapter/vxe-table";
-
+import {useVbenVxeGrid} from "#/adapter/vxe-table";
+import type {VxeTableGridOptions} from "@vben/plugins/vxe-table";
+import {BackIcon, SaveIcon, DeleteIcon} from "@vben/icons";
+import {commonFormConfig, commonGradConfig} from "#/util/constant";
+import SelectModal from "#/component/selectModal/index.vue";
+import {confirm} from '@vben/common-ui'
 
 const route = useRoute()
 const router = useRouter()
 const tabs = useTabs()
-const loading = ref(false)
-const data = ref([])
+const selected = ref<any>([])
 const pageConfig: Ref<{ current: number, pageSize: number }> = ref({
   current: 1,
   pageSize: 50,
 })
 const formOptions: VbenFormProps = {
-  showCollapseButton: false,
-  resetButtonOptions: {
-    content: '返回',
-    class: 'buttonWidth'
-  },
-  submitButtonOptions: {
-    content: '保存',
-    class: 'buttonWidth'
-  },
-  handleReset: () => {
-    tabs.closeCurrentTab()
-    router.back()
-  },
-  handleSubmit: (values) => {
-    if (route.query.id === '-1') {
-      // const result = await houseApi.add({...values})
-    } else {
-      // const result = await houseApi.update({...values})
-    }
-  },
-  actionWrapperClass: 'text-right',
-  commonConfig: {
-    colon: true,
-  },
-  layout: 'horizontal',
+  ...commonFormConfig,
   wrapperClass: 'grid-cols-3',
   schema: [
     {
@@ -103,7 +82,7 @@ const formOptions: VbenFormProps = {
   ]
 }
 const gridOptions: VxeTableGridOptions<any> = {
-  loading: loading.value,
+  ...commonGradConfig,
   columns: [
     {title: '序号', type: 'checkbox', width: 80},
     {title: '药品名称', field: 'name', width: 120},
@@ -111,51 +90,83 @@ const gridOptions: VxeTableGridOptions<any> = {
     {title: '药品规格', field: 'spec', width: 120},
     {title: '单位', field: 'unit', width: 100},
   ],
-  data: data.value,
   pagerConfig: {
     currentPage: pageConfig.value.current,
     pageSize: pageConfig.value.pageSize,
     pageSizes: [50, 100, 200]
   },
-  height: 'auto',
-  keepSource: true,
-  stripe: true,
-  toolbarConfig: {
-    custom: true,
-    export: true,
-    refresh: true,
-    resizable: true,
-    search: true,
-    zoom: true,
-  },
-  formConfig: {
-    items: [
-      { slots: {  default: 'default'  } }
-    ]
-  }
 };
-const [Grid] = useVbenVxeGrid({
+const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   formOptions,
+  gridEvents: {
+    checkboxChange: (row)=> {
+      console.log('-----变化', row)
+    }
+  }
 })
 onMounted(() => {
   if (route.query.id !== '-1') {
     // 进行初始化请求
   }
 })
-const addItem = () => {
-}
 const deleteItem = () => {
+  const l = gridApi.grid.getCheckboxRecords()
+  confirm({
+    content: `是否确认删除这${l.length}条数据`,
+  }).then().catch(()=> {})
+}
+const goBack = () => {
+  tabs.closeCurrentTab()
+  router.back()
+}
+const saveItem = () => {
+  gridApi.formApi.validate().then(validRes => {
+    if (validRes.valid) {
+      if (route.query.id === '-1') {
+        // const result = await storageApi.add({...values})
+      } else {
+        // const result = await storageApi.update({...values})
+      }
+    }
+  })
 }
 </script>
 <template>
   <Page auto-content-height>
+    <template #title>
+      <n-button @click="goBack" type="default" class="buttonWidth">
+        <template #icon>
+          <BackIcon />
+        </template>
+        返回
+      </n-button>
+      <n-button @click="saveItem" type="info" class="buttonWidth" style="margin-left: 10px">
+        <template #icon>
+          <SaveIcon />
+        </template>
+        保存
+      </n-button>
+    </template>
     <Grid>
       <template #toolbar-actions>
-        <n-button @click="addItem" type="info" style="min-width: 80px">
-          新增
-        </n-button>
-        <n-button @click="deleteItem" type="error" style="min-width: 80px;margin-left: 10px">
+        <SelectModal
+            key-field="id"
+            :selected="selected"
+            multiple
+            selectType="drug"
+            type="Button"
+            @confirm="(array)=> {
+              selected = [...array]
+              gridApi.setGridOptions({
+                data: [...array]
+              })
+            }"
+        />
+        <n-button :disabled="!selected.length" class="buttonWidth" @click="deleteItem" type="info" style="margin-left: 10px">
+          <template #icon>
+            <DeleteIcon />
+          </template>
           删除
         </n-button>
       </template>

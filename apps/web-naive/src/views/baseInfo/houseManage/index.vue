@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 import {Page} from '@vben/common-ui';
 import { NButton, NFlex, NPopconfirm }  from 'naive-ui'
-import { DeleteIcon } from '@vben/icons';
+import {DeleteIcon, SearchIcon, AddIcon} from '@vben/icons';
 import {useBaseDetail} from "#/views/hook/useBaseDetail";
 import {houseApi} from "#/views/baseInfo/houseManage/api";
 import {textColor} from "#/constants";
 
-const { Grid, queryTable, addItem, updateItem, deleteItem } = useBaseDetail({
+const { Grid, queryTable, addItem, deleteItem } = useBaseDetail({
   searchForm: [
     {
       component: 'Input',
-      defaultValue: '',
       fieldName: 'keyword',
       label: '仓库名称',
     },
@@ -34,15 +33,21 @@ const { Grid, queryTable, addItem, updateItem, deleteItem } = useBaseDetail({
   <Page auto-content-height>
     <Grid>
       <template #toolbar-actions>
-        <n-button @click="queryTable" type="info" style="min-width: 80px">
+        <n-button class="buttonWidth" @click="queryTable" type="info">
+          <template #icon>
+            <SearchIcon />
+          </template>
           查询
         </n-button>
-        <n-button @click="addItem" type="info" style="min-width: 80px;margin-left: 10px">
+        <n-button class="buttonWidth" @click="addItem(-1)" type="info" style="margin-left: 10px">
+          <template #icon>
+            <AddIcon />
+          </template>
           新增
         </n-button>
       </template>
       <template #code="{row}">
-        <span @click="updateItem({ name: row.name })" style="color: #2080f0;cursor: pointer;">{{ row.name }}</span>
+        <span @click="addItem(row.id)" :style="{color: textColor['info'],cursor: 'pointer'}">{{ row.name }}</span>
       </template>
       <template #status="{row}">
         <span :style="{ color: textColor[row.status ? 'success' : 'error'] }">{{ row.status ? '启用' : '禁用' }}</span>
@@ -51,7 +56,7 @@ const { Grid, queryTable, addItem, updateItem, deleteItem } = useBaseDetail({
         <n-flex justify="center">
           <n-popconfirm @positive-click="deleteItem">
             <template #trigger>
-              <DeleteIcon style="color: #2080f0;cursor: pointer;" />
+              <DeleteIcon :style="{color: textColor['info'],cursor: 'pointer'}" />
             </template>
             确认要删除吗?
           </n-popconfirm>
