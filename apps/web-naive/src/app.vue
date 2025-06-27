@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { GlobalThemeOverrides } from 'naive-ui';
+import type {GlobalThemeOverrides} from 'naive-ui';
 
-import { computed } from 'vue';
+import {computed} from 'vue';
 
-import { useNaiveDesignTokens } from '@vben/hooks';
-import { preferences } from '@vben/preferences';
+import {useNaiveDesignTokens} from '@vben/hooks';
+import {preferences} from '@vben/preferences';
 
 import {
   darkTheme,
@@ -15,22 +15,23 @@ import {
   NConfigProvider,
   NMessageProvider,
   NNotificationProvider,
+  NDialogProvider,
   zhCN,
 } from 'naive-ui';
 import './app.scss'
 
-defineOptions({ name: 'App' });
+defineOptions({name: 'App'});
 
-const { commonTokens } = useNaiveDesignTokens();
+const {commonTokens} = useNaiveDesignTokens();
 
 const tokenLocale = computed(() =>
-  preferences.app.locale === 'zh-CN' ? zhCN : enUS,
+    preferences.app.locale === 'zh-CN' ? zhCN : enUS,
 );
 const tokenDateLocale = computed(() =>
-  preferences.app.locale === 'zh-CN' ? dateZhCN : dateEnUS,
+    preferences.app.locale === 'zh-CN' ? dateZhCN : dateEnUS,
 );
 const tokenTheme = computed(() =>
-  preferences.theme.mode === 'dark' ? darkTheme : lightTheme,
+    preferences.theme.mode === 'dark' ? darkTheme : lightTheme,
 );
 
 const themeOverrides = computed((): GlobalThemeOverrides => {
@@ -42,16 +43,18 @@ const themeOverrides = computed((): GlobalThemeOverrides => {
 
 <template>
   <NConfigProvider
-    :date-locale="tokenDateLocale"
-    :locale="tokenLocale"
-    :theme="tokenTheme"
-    :theme-overrides="themeOverrides"
-    class="h-full"
+      :date-locale="tokenDateLocale"
+      :locale="tokenLocale"
+      :theme="tokenTheme"
+      :theme-overrides="themeOverrides"
+      class="h-full"
   >
-    <NNotificationProvider>
-      <NMessageProvider>
-        <RouterView />
-      </NMessageProvider>
-    </NNotificationProvider>
+    <NDialogProvider>
+      <NNotificationProvider>
+        <NMessageProvider>
+          <RouterView/>
+        </NMessageProvider>
+      </NNotificationProvider>
+    </NDialogProvider>
   </NConfigProvider>
 </template>
